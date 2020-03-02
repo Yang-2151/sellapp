@@ -10,6 +10,7 @@ const routes = [
     name: 'index',
     component: Index,
     children:[
+      {path: '/', component: () => import('../views/Goods.vue')},
       {
         path:'/goods',
         name:'goods',

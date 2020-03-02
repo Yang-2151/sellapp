@@ -5,7 +5,7 @@
       <Row>
         <i-Col :xs="9" class="grade-left">
           <div class="grade-content">
-            <h1>{{rankRate}}</h1>
+            <h1>{{merchant.rankRate}}</h1>
             <p>综合评分</p>
             <p>高于周边商家69.2%</p>
           </div>
@@ -13,19 +13,19 @@
         <i-Col :xs="15" class="grade-right">
           <div>
             <span>口味</span>
-            <Rate show-text allow-half v-model="score">
-              <span style="color: #f5a623">{{score}}</span>
+            <Rate show-text allow-half v-model="merchant.score">
+              <span style="color: #f5a623">{{merchant.score}}</span>
             </Rate>
           </div>
           <div>
             <span>服务</span>
-            <Rate show-text allow-half v-model="serviceScore">
-              <span style="color: #f5a623">{{serviceScore}}</span>
+            <Rate show-text allow-half v-model="merchant.serviceScore">
+              <span style="color: #f5a623">{{merchant.serviceScore}}</span>
             </Rate>
           </div>
           <p>
             送达时间
-            <span>{{deliveryTime}}</span> 分钟
+            <span>{{merchant.deliveryTime}}</span> 分钟
           </p>
         </i-Col>
       </Row>
@@ -53,7 +53,7 @@
     </div>
     <!-- 评价 -->
     <div class="comment">
-      <Row v-for="(v,i) in data" :key="i" class="comment-group">
+      <Row v-for="(v,i) in evaluate" :key="i" class="comment-group">
         <!-- 头像 -->
         <i-Col :xs="3" class="comment-left">
           <Avatar :src="v.avatar" />
@@ -71,7 +71,7 @@
           <p>{{v.text}}</p>
           <div class="recommend">
             <Icon v-show="v.rateType==1" type="md-thumbs-down" />
-            <Icon v-show="v.rateType==0" type="md-thumbs-up"  class="clickbtn"/>
+            <Icon v-show="v.rateType==0" type="md-thumbs-up" class="clickbtn" />
             <p v-for="(val,idx) in v.recommend" :key="idx">{{val}}</p>
           </div>
         </i-Col>
@@ -83,26 +83,56 @@
 
 <script>
 import { getRatings, getSeller } from "../api/apis";
+
 export default {
   data() {
-    return {
-      data: {},
-      rankRate:0,
-      score:0,
-      serviceScore:0,
-      deliveryTime:0
-    };
+    return {};
   },
   created() {
     getRatings().then(res => {
-      this.data = res.data.data;
-      console.log(res.data);  
-    });getSeller().then(d => {
-        this.rankRate = d.data.data.rankRate;
-        this.score = d.data.data.score;
-        this.serviceScore = d.data.data.serviceScore;
-        this.deliveryTime = d.data.data.deliveryTime;
+      this.$store.commit("initEvaluate", res.data.data);
+
+      this.evaluate.forEach(function(v) {
+        function newtime(deliveryTime) {
+          var time = new Date(deliveryTime);
+          var year = time.getFullYear();
+          var month = time.getMonth() + 1;
+          if (month < 10) {
+            month = "0" + month;
+          }
+          var day = time.getDate();
+          if (day < 10) {
+            day = "0" + day;
+          }
+          var hours = time.getHours();
+          if (hours < 10) {
+            hours = "0" + hours;
+          }
+          var minutes = time.getMinutes();
+          if (minutes < 10) {
+            minutes = "0" + minutes;
+          }
+          var seconds = time.getSeconds();
+          if (seconds < 10) {
+            seconds = "0" + seconds;
+          }
+          return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+        v.rateTime = newtime(v.rateTime);
       });
+    });
+    getSeller().then(d => {
+      this.$store.commit("initMerchant", d.data.data);
+      console.log(this.merchant);
+    });
+  },
+  computed: {
+    evaluate() {
+      return this.$store.state.evaluate;
+    },
+    merchant() {
+      return this.$store.state.merchant;
+    }
   }
 };
 </script>
@@ -130,7 +160,7 @@ export default {
       padding-left: 16px;
       font-size: 14px;
       .ivu-rate {
-          font-size: 16px;
+        font-size: 16px;
       }
     }
     .ivu-col {
@@ -173,18 +203,18 @@ export default {
           display: flex;
           justify-content: flex-start;
           flex-wrap: wrap;
-          color: #AFB0B4;
-          .ivu-icon{
-              font-size: 14px;
-              line-height: 2;
+          color: #afb0b4;
+          .ivu-icon {
+            font-size: 14px;
+            line-height: 2;
           }
-          .clickbtn{
+          .clickbtn {
             color: skyblue;
           }
-          p{
-              border: 1px solid #AFB0B4;
-              margin: 2px;
-              padding: 2px
+          p {
+            border: 1px solid #afb0b4;
+            margin: 2px;
+            padding: 2px;
           }
         }
       }
